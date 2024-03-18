@@ -1,6 +1,7 @@
 import json
 import os
 from dataclasses import InitVar, dataclass, field
+from pprint import pprint
 from textwrap import dedent, indent
 from typing import Any, Literal
 from urllib.parse import ParseResult, urlparse
@@ -94,9 +95,19 @@ class Package:
 
 
 def eval_expression(
-    escaped_import_path: str, attr: str, flake: bool, system: str | None
+    escaped_import_path: str,
+    attr: str,
+    source_attr: str,
+    flake: bool,
+    system: str | None,
 ) -> str:
     system = f'"{system}"' if system else "builtins.currentSystem"
+
+    source_attrs = source_attr.rpartition(".")
+    source_attr_last = source_attrs[-1] or source_attr
+    source_attr_all_but_last = (
+        f".{source_attrs[0]}" if source_attr_last != source_attr else ""
+    )
 
     if flake:
         let_bindings = f"""
@@ -135,17 +146,17 @@ let
   else if pkg ? isPhpExtension then
     raw_version_position
    else
-    sanitizePosition (builtins.unsafeGetAttrPos "src" pkg);
+    sanitizePosition (builtins.unsafeGetAttrPos "{source_attr_last}" pkg{source_attr_all_but_last});
 in {{
   name = pkg.name;
   old_version = pkg.version or (builtins.parseDrvName pkg.name).version;
   inherit raw_version_position;
   filename = position.file;
   line = position.line;
-  urls = pkg.src.urls or null;
-  url = pkg.src.url or null;
-  rev = pkg.src.rev or null;
-  hash = pkg.src.outputHash or null;
+  urls = pkg.{source_attr}.urls or null;
+  url = pkg.{source_attr}.url or null;
+  rev = pkg.{source_attr}.rev or null;
+  hash = pkg.{source_attr}.outputHash or null;
   go_modules = pkg.goModules.outputHash or null;
   go_modules_old = pkg.go-modules.outputHash or null;
   cargo_deps = pkg.cargoDeps.outputHash or null;
@@ -166,7 +177,7 @@ in {{
   maven_deps = pkg.fetchedMavenDeps.outputHash or null;
   tests = builtins.attrNames (pkg.passthru.tests or {{}});
   has_update_script = {has_update_script};
-  src_homepage = pkg.src.meta.homepage or null;
+  src_homepage = pkg.{source_attr}.meta.homepage or null;
   changelog = pkg.meta.changelog or null;
   maintainers = pkg.meta.maintainers or null;
 }}"""
@@ -174,7 +185,11 @@ in {{
 
 def eval_attr(opts: Options) -> Package:
     expr = eval_expression(
-        opts.escaped_import_path, opts.escaped_attribute, opts.flake, opts.system
+        opts.escaped_import_path,
+        opts.escaped_attribute,
+        opts.source_attribute,
+        opts.flake,
+        opts.system,
     )
     cmd = [
         "nix",
@@ -187,6 +202,7 @@ def eval_attr(opts: Options) -> Package:
     res = run(cmd)
     out = json.loads(res.stdout)
     package = Package(attribute=opts.attribute, import_path=opts.import_path, **out)
+    pprint(package)
     if opts.override_filename is not None:
         package.filename = opts.override_filename
     if opts.url is not None:

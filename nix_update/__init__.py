@@ -91,6 +91,12 @@ def parse_args(args: list[str]) -> Options:
         help="""Attribute name within the file evaluated (defaults to environment variable "UPDATE_NIX_ATTR_PATH")""",
     )
 
+    parser.add_argument(
+        "--src-attr",
+        help="Src attribute",
+        default="src",
+    )
+
     a = parser.parse_args(args)
     return Options(
         import_path=os.path.realpath(a.file),
@@ -105,6 +111,7 @@ def parse_args(args: list[str]) -> Options:
         version=a.version,
         version_preference=VersionPreference.from_str(a.version),
         attribute=a.attribute,
+        source_attribute=a.src_attr,
         test=a.test,
         version_regex=a.version_regex,
         review=a.review,
