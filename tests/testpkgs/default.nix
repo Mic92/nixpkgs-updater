@@ -1,4 +1,6 @@
-{ pkgs ? import <nixpkgs> { } }:
+{
+  pkgs ? import <nixpkgs> { },
+}:
 {
   bitbucket = pkgs.callPackage ./bitbucket.nix { isSnapshot = false; };
   bitbucket-snapshot = pkgs.callPackage ./bitbucket.nix { isSnapshot = true; };
