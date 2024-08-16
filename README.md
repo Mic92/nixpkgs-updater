@@ -25,9 +25,9 @@ work with nixpkgs but also other package sets.
 - update mixRelease's mixFodDeps
 - update fetchYarnDeps offlineCache output hash
 - update flake outputs (see `--flake`)
-- generate the following lockfile, Cargo.lock (see `--generate-lockfile` and `--lockfile-metadata-path`)
-- build and run the resulting package (see `--build`,
-  `--run` or `--shell`
+- generate the following lockfile, Cargo.lock (see `--generate-lockfile` and
+  `--lockfile-metadata-path`)
+- build and run the resulting package (see `--build`, `--run` or `--shell`
 - commit updated files (see `--commit` flag)
 - run update scripts (`passthru.updateScript`, see `--use-update-script` flag)
 - run package tests (see `--test` flag)
