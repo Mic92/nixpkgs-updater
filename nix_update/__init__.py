@@ -114,6 +114,12 @@ def parse_args(args: list[str]) -> Options:
         help="Attribute of a subpackage that nix-update should try to update hashes for",
         default=None,
     )
+    parser.add_argument(
+        "--extra-flags",
+        default=[],
+        type=shlex.split,
+        help="Args to pass to all Nix invocations, subject to splitting.",
+    )
 
     a = parser.parse_args(args)
     return Options(
@@ -140,6 +146,7 @@ def parse_args(args: list[str]) -> Options:
         generate_lockfile=a.generate_lockfile,
         lockfile_metadata_path=a.lockfile_metadata_path,
         extra_flags=(["--system", a.system] if a.system else [])
+        + a.extra_flags
         + ["--extra-experimental-features", "flakes nix-command"],
     )
 
